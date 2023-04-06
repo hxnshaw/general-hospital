@@ -32,11 +32,9 @@ exports.registerPatient = async (req, res) => {
       telephone_number,
       payment_category,
     });
-    //await patient.save();
-    //console.log(patient.dataValues);
 
     return res.status(201).json({
-      message: `${patient.first_name} ${patient.middle_name} ${patient.last_name}, registered successfully`,
+      message: `${patient.first_name} ${patient.middle_name} ${patient.last_name}, with id: ${patient.patient_id} registered successfully`,
     });
   } catch (error) {
     return res.status(400).json(error.message);
@@ -55,6 +53,78 @@ exports.getSinglePatient = async (req, res) => {
       return res.status(404).json({ message: "Patient not found" });
     }
     return res.status(200).json({ data: patient });
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+};
+
+exports.getAllPatients = async (req, res) => {
+  try {
+    const patients = await Patient.findAll({});
+    if (patients.length === 0) {
+      return res.status(404).json({ message: "No patients found." });
+    }
+
+    return res.status(200).json({ users: patients.length, data: { patients } });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
+
+exports.editPatientProfile = async (req, res) => {
+  const { patient_id: patient_id } = req.params;
+  const {
+    last_name,
+    first_name,
+    middle_name,
+    birthDate,
+    gender,
+    telephone_number,
+    payment_category,
+  } = req.body;
+  try {
+    if (
+      !last_name ||
+      !first_name ||
+      !middle_name ||
+      !birthDate ||
+      !gender ||
+      !telephone_number ||
+      !payment_category
+    ) {
+      res.status(400).json({ message: "Please enter valid credentials" });
+    }
+
+    const patient = await Patient.findOne({
+      where: { patient_id: patient_id },
+    });
+    if (!patient) {
+      return res.status(404).json({ message: "patient not found " });
+    }
+    (patient.last_name = last_name),
+      (patient.first_name = first_name),
+      (patient.middle_name = middle_name),
+      (patient.birthDate = birthDate),
+      (patient.gender = gender),
+      (patient.telephone_number = telephone_number),
+      (patient.payment_category = payment_category),
+      await patient.save();
+
+    return res.status(200).json({ profile: patient });
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+};
+
+exports.deletePatient = async (req, res) => {
+  const { patient_id } = req.params;
+  try {
+    const patient = await Patient.findOne({
+      where: { patient_id: patient_id },
+    });
+
+    await patient.destroy();
+    return res.status(200).json({ msg: "Patient Deleted" });
   } catch (error) {
     return res.status(400).json(error.message);
   }
