@@ -47,6 +47,7 @@ exports.getSinglePatient = async (req, res) => {
   try {
     const patient = await Patient.findOne({
       where: { patient_id: patient_id },
+      include: ["appointment"],
     });
 
     if (!patient) {
@@ -67,7 +68,7 @@ exports.getAllPatients = async (req, res) => {
 
     return res.status(200).json({ users: patients.length, data: { patients } });
   } catch (error) {
-    res.status(400).json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
